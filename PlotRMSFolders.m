@@ -26,15 +26,19 @@ function PlotRMSFolders(sfn)
     idx=(abs(B-1)<.15);
     
     figure
-    histogram(A(idx),200);
+    histogram(A(:),200);
     xlabel('Fit Value')
+    med=nanmedian(A(:))
+    mn=nanmean(A(:))
+    STD=nanstd(A(:))
     figure
     plot(B(~idx),A(~idx),'x')
     
     figure
     histogram(Amp(idx),200);
     xlabel('Fit Value')
-    
+    figure
+    plot(B,A,'x')
     
 end
 function [FITP,Q,ampl] = loadFolder(folderName,name)
@@ -64,6 +68,7 @@ function [FITP,Q,ampl] = loadFolder(folderName,name)
         ampl=arrayfun(@(x) x.model.amplitude,hys)';
         rms=arrayfun(@(x) x.model.rms,hys)';
         
+        %{
         figure
         plot(FITP,'x--');%,'DisplayName',name);
         hold all
@@ -85,6 +90,7 @@ function [FITP,Q,ampl] = loadFolder(folderName,name)
         legend(gca,'show')
         xlabel('Nbr e- \^(-.5)')
         ylabel('RMS')
+        %}
         
         
     else
