@@ -1,6 +1,6 @@
 function PlotRMSFolders(sfn)
     %call loadFolder in all folder inside superfolder
-    %SuperFolder = 'Data/March';
+    %sfn = 'Data';
     files=dir(sfn);
     
     
@@ -22,24 +22,30 @@ function PlotRMSFolders(sfn)
         end
         
     end
-    
-    idx=(abs(B-1)<.15);
-    
-    figure
-    histogram(A(:),200);
-    xlabel('Fit Value')
-    med=nanmedian(A(:))
-    mn=nanmean(A(:))
-    STD=nanstd(A(:))
-    figure
-    plot(B(~idx),A(~idx),'x')
+    A(A>200)=nan;
     
     figure
-    histogram(Amp(idx),200);
-    xlabel('Fit Value')
-    figure
-    plot(B,A,'x')
+    histogram(A(:),30);
+    xlabel('Normalized Variance')
+    title(sprintf('Median = %g',nanmedian(A(:))));
+    nanmean(A(:))
+    set(gca,'FontSize',20)
     
+    figure
+    plot(B(:),A(:),'x')
+    
+    figure
+    histogram(Amp(:),200);
+    xlabel('Fit Value Amplitude')
+    
+end
+function R=funfit(X,Y)
+    try
+        f=fit(X',Y','p1*x','StartPoint',70);
+        R=f.p1;
+    catch exception
+        R=nan;
+    end
 end
 function [FITP,Q,ampl] = loadFolder(folderName,name)
     persistent loadedData
@@ -55,43 +61,68 @@ function [FITP,Q,ampl] = loadFolder(folderName,name)
         else
             
             fns=arrayfun(@(x) [folderName,'/',x.name],files,'UniformOutput',false);
-            [headers,datas]=cellfun(@loadHys,fns,'UniformOutput',false);
+            [headers,datas]=cellfun(@load.loadHys,fns,'UniformOutput',false);
             
             loadedData.(fieldName).headers=headers;
             loadedData.(fieldName).datas=datas;
         end
         
+        hys=cellfun(@(x,y) load.processHys(x,y,.1,0),datas,headers);
         
-        [NE,RMS,FIT,hys]=RMSvsNBRE(datas,headers,0.1,0);
-        FITP=[FIT.p1];
+        
+        [NE,RMS] = cellfun(@(x,y) op.getNeRmsCrv(x,y,.1,0),datas,headers,'UniformOutput',false);
+        
+        
+        
+        FITP = cellfun(@(X,Y) median(X.*Y.*Y) ,NE,RMS)';
+        %FITP = cellfun(@(X,Y) funfit(1./X,Y.^2) ,NE,RMS)';
+        %{
+        X=NE{j}.^-1;
+        Y=RMS{j}.^2;
+        FIT(j).p1=median(Y./X);
+        FIT(j).p2=0;
+        
+        %Fit if we can
+        
+        %}
+        
+        
+        %FITP=[FIT.p1];
         Q=[hys.Q];
         ampl=arrayfun(@(x) x.model.amplitude,hys)';
-        rms=arrayfun(@(x) x.model.rms,hys)';
         
+        
+        rms=arrayfun(@(x) x.model.rms,hys)';
+        Fdiff=arrayfun(@(x) x.model.diffFlip,hys)';
+        FStd=arrayfun(@(x) x.model.flipSTD,hys)';
         %{
         figure
         plot(FITP,'x--');%,'DisplayName',name);
         hold all
+        plot(abs(Fdiff),'x--');
+        plot(FStd,'x--');
+        
+        title(name)
+        %{
         plot(Q,'x--')
         plot(ampl,'x--')
         plot(rms,'x--')
-        title(name)
         xlabel('index')
         ylabel('Fit Value')
         %legend(gca,'show')
+        %}
         
         figure
         hold all
         for j=1:numel(NE)
-            if (abs(Q(j)-1)<.15)%Keep 15% around Q
-                plot(NE{j}.^-0.5,RMS{j},'x-','DisplayName',sprintf('%d',j));
-            end
+            plot(1./NE{j},RMS{j}.^2,'x-','DisplayName',sprintf('%d',j));
         end
         legend(gca,'show')
-        xlabel('Nbr e- \^(-.5)')
-        ylabel('RMS')
-        %}
+        xlabel('1/Nbr e- ')
+        ylabel('Variance')
+        title(name)
         
+        %}
         
     else
         FITP=[];
