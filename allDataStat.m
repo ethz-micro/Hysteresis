@@ -20,40 +20,38 @@ function allDataStat(sfn)
     FStd=arrayfun(@(x) x.model.flipSTD,hys)';
     FlipIdx=arrayfun(@(x) x.model.flipIdx,hys)';
     FITSigma = [hys.fitSigmaE];
+    diffAmp = arrayfun(@(x) x.model.diffAmp,hys)';
+    ampSTD = arrayfun(@(x) x.model.ampSTD,hys)';
     
+    ignored = FITSigma(FITSigma>200);
     figure
-    histogram(FITSigma*.01,0:.1:2);
+    histogram(FITSigma*.01,0.5:.05:2);
     xlabel('\sigma_e^2')
-    title(sprintf('Median = %g',nanmedian(FITSigma*.01)));
+    title(sprintf('Median = %.2f, Std = %.2f ,%d off-scale',nanmedian(FITSigma((FITSigma<200))*.01),nanstd(FITSigma((FITSigma<200))*.01),numel(ignored)));
     set(gca,'FontSize',20)
     
     figure
-    histogram(amplitude,0:0.01:0.35)
+    histogram(Fdiff./FStd,-5:.2:5)
+    xlabel('(Theorical - minimized) Flip / Flip std')
+    title(sprintf('STD = %.2f, mean = %.2f',nanstd(Fdiff./FStd),nanmean(Fdiff./FStd)))
+    set(gca,'FontSize',20)
+    
+    figure
+    histogram(amplitude,70)
     xlabel('Amplitude')
+    set(gca,'FontSize',20)
     
     figure
-    histogram(FlipIdx,0:30)
-    xlabel('FlipIdx')
+    histogram(FlipIdx,0:35)
+    xlabel('Flip Load Time [\mus]')
+    set(gca,'FontSize',20)
     
     figure
-    histogram(FlipIdx(amplitude>rms),0:30)
-    xlabel('FlipIdx')
-    title('amplitude > RMS')
+    histogram(diffAmp./ampSTD,30)
+    title(sprintf('STD = %.2f, mean = %.2f',nanstd(diffAmp./ampSTD),nanmean(diffAmp./ampSTD)))
     
-    figure
-    histogram(Fdiff,-10:.5:10)
-    xlabel('FlipIdx diff')
-    title(sprintf('STD = %g, mean = %g',nanstd(Fdiff),nanmean(Fdiff)))
     
-    figure
-    histogram(Fdiff./FStd,30)
-    xlabel('FlipIdx diff/FISTD')
     
-    Fdiff=Fdiff(amplitude>rms);
-      figure
-    histogram(Fdiff,-10:.5:10)
-    xlabel('FlipIdx diff')
-    title(sprintf('Better? STD = %g, mean = %g',nanstd(Fdiff),nanmean(Fdiff)))
 end
 
 function hysArray = getHysFolder(folderName)

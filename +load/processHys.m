@@ -8,7 +8,7 @@ function hysteresis=processHys(data,header,S,contact,varargin)
     
     %Fit model to data
     hysteresis.model=load.fitModel(hysteresis);
-    
+  
     if isfield(header,'TIP_Z_m')
         header.TIP_Z_m=header.TIP_Z_m-contact;
     end
@@ -79,5 +79,5 @@ function hysteresis=cutData(data,S,varargin)
         hysteresis.meanI=nan;
     end
     hysteresis.meanContr=mean([fallingLines(:); risingLines(:)]);
-    hysteresis.NLoop=numel(risingLines);
+    hysteresis.NLoop=size(risingLines,2);
 end
