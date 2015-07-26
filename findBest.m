@@ -31,8 +31,8 @@ function sigoRMS=loadFolder(folderName)
         %Load file
         fileInfo=files(i);
         fn = [folderName,'/',fileInfo.name];
-        [header,data]=loadHys(fn);
-        hys=processHys(data,header,0.2,0);
+        [header,data]=load.loadHys(fn);
+        hys=load.processHys(data,header,0.2,0);
         sigoRMS(i)=hys.model.amplitude./hys.model.rms;       
     end
 end

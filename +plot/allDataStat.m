@@ -22,8 +22,23 @@ function allDataStat(sfn)
     FITSigma = [hys.fitSigmaE];
     diffAmp = arrayfun(@(x) x.model.diffAmp,hys)';
     ampSTD = arrayfun(@(x) x.model.ampSTD,hys)';
+    V=arrayfun(@(x) x.header.MSR_VOLT,hys)';
+    fields = arrayfun(@(x) load.LoadTime2Field(x.model.flipIdx,x.header.MSR_VOLT),hys);
+    names = arrayfun(@(x) x.header.SOURCE_INFOS,hys,'UniformOutput',false)';
+    
+    fitSigmaESTD=[hys.fitSigmaESTD];
+    found=regexp(names,'(JEOL|STM)');
+    nfesem=cellfun(@isempty,found);
     
     ignored = FITSigma(FITSigma>200);
+    
+    X=fitSigmaESTD*.01;
+    figure
+    histogram(X,0:.05:1)
+    xlabel('STD \sigma_e^2')
+    title(sprintf('STD = %.2f, median = %.2f',nanstd(X),nanmedian(X)))
+    set(gca,'FontSize',20)
+    
     figure
     histogram(FITSigma*.01,0.5:.05:2);
     xlabel('\sigma_e^2')
@@ -36,14 +51,61 @@ function allDataStat(sfn)
     title(sprintf('STD = %.2f, mean = %.2f',nanstd(Fdiff./FStd),nanmean(Fdiff./FStd)))
     set(gca,'FontSize',20)
     
+    ratio=Fdiff./FStd;
+    
+    X=ratio(amplitude>rms&V==80);
+     figure
+    histogram(X,-5:.2:5)
+    xlabel('(Theorical - minimized) Flip / Flip std for 80V, amp>std')
+    title(sprintf('STD = %.2f, mean = %.2f',nanstd(X),nanmean(X)))
+    set(gca,'FontSize',20)
+    
+    X=ratio(~(amplitude>rms)&V==80);
+     figure
+    histogram(X,-5:.2:5)
+    xlabel('(Theorical - minimized) Flip / Flip std for 80V, amp<std')
+    title(sprintf('STD = %.2f, mean = %.2f',nanstd(X),nanmean(X)))
+    set(gca,'FontSize',20)
+    
+    
     figure
-    histogram(amplitude,70)
+    histogram(amplitude,0:0.01:0.35)
     xlabel('Amplitude')
     set(gca,'FontSize',20)
     
     figure
-    histogram(FlipIdx,0:35)
+    histogram(amplitude(amplitude>rms),0:0.01:0.35)
+    xlabel('Amplitude')
+    title('amplitude>RMS')
+    set(gca,'FontSize',20)
+    
+    figure
+    histogram(amplitude(amplitude>rms & nfesem),0:0.01:0.2)
+    xlabel('Amplitude')
+    title('amplitude>RMS, NFESEM')
+    set(gca,'FontSize',20)
+    
+    figure
+    histogram(amplitude(amplitude>rms & ~nfesem),0:0.01:0.35)
+    xlabel('Amplitude')
+    title('amplitude>RMS, SEMPA')
+    set(gca,'FontSize',20)
+    
+    figure
+    histogram(FlipIdx(V==80),0:32)
     xlabel('Flip Load Time [\mus]')
+    title('V_{load}=80')
+    set(gca,'FontSize',20)
+    
+    figure
+    histogram(FlipIdx(amplitude>rms&V==80),3:16)
+    xlabel('Flip Load Time [\mus]')
+    title('V_{load}=80, amplitude>RMS')
+    set(gca,'FontSize',20)
+    
+    figure
+    histogram(fields,35)
+    xlabel('Flip Field [G]')
     set(gca,'FontSize',20)
     
     figure
@@ -64,7 +126,9 @@ function hysArray = getHysFolder(folderName)
         
         [NE,RMS] = cellfun(@(x,y) op.getNeRmsCrv(x,y,.1,0),datas,headers,'UniformOutput',false);
         fitSigmaE = cellfun(@(X,Y) median(X.*Y.*Y) ,NE,RMS);
+        fitSigmaESTD = cellfun(@(X,Y) nanstd(X.*Y.*Y) ,NE,RMS);
         hysArray=arrayfun(@(x,y) setfield(x,'fitSigmaE',y),hysArray,fitSigmaE);
+        hysArray=arrayfun(@(x,y) setfield(x,'fitSigmaESTD',y),hysArray,fitSigmaESTD);
     else
         hysArray=[];
     end

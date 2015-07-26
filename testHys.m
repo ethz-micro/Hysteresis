@@ -4,8 +4,9 @@ clear all
 
 fn = 'Data/2015_06_15/FE_W(011)_002.hys';
 %fn = 'Data/2015_06_03/FE_W(011)_001.hys';
+fn = 'Data/2015_07_16/FE_W(011)_003.hys';
 
-contact=-280e-9;
+contact=-260e-9;
 S=0.1;
 [Header,Data]=load.loadHys(fn);
 hys=load.processHys(Data,Header,S,contact);
@@ -13,6 +14,7 @@ hys=load.processHys(Data,Header,S,contact);
 % plot hysteresis
 
 plot.plotHys(hys)
+plot.plotHys(hys,'Field')
 
 %% look at curve
 [NE,RMS]=op.getNeRmsCrv(Data,Header,S,contact);
@@ -24,6 +26,6 @@ set(gca,'FontSize',20)
 
 %% plot given number of loops
 maxLoop=27;
-hys=load.processHys(Data,Header,S,contact,maxLoop);
+hysm=load.processHys(Data,Header,S,contact,maxLoop);
 
-plot.plotHys(hys)
+plot.plotHys(hysm)
