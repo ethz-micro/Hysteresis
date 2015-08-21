@@ -1,11 +1,11 @@
 function model = fitModel(hysteresis)
     
     %Extract Time
-    Time=hysteresis.time;
+    Time=hysteresis.data.time;
     
     %Extract Rising and Falling lines.
-    risingLines=hysteresis.risingLines;
-    fallingLines=hysteresis.fallingLines;
+    risingLines=hysteresis.data.risingLines;
+    fallingLines=hysteresis.data.fallingLines;
     
     
     %% Find data shape

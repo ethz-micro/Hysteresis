@@ -11,56 +11,56 @@ clear all;
 
 %% Load data
 
-dataSet=1;
+dataSet=6;
 
 switch dataSet
-    case 1
+    case 1% cte counts
         BaseName='Data/2015_07_08/FE_W(011)_';
         VarName='Z [nm]';
         idx=3:47;
         contact=-239e-9;
-    case 2
+    case 2 % cte Bias
         BaseName='Data/2015_07_02/FE_W(011)_';
         VarName='Z [nm]';
         idx=6:15;
         contact=-232e-9;
-    case 3
+    case 3 % cte Current
         BaseName='Data/2015_07_02/FE_W(011)_';
         VarName='Z [nm]';
         idx=18:27;
         contact=-257e-9;
-    case 4
+    case 4 % Cte counts
         BaseName='Data/2015_07_02/FE_W(011)_';
         VarName='Z [nm]';
         idx=28:37;
         contact=-274e-9;
-    case 5
+    case 5 % cte Z
         BaseName='Data/2015_07_02/FE_W(011)_';
         VarName='Bias [V]';
         idx=38:44;
         contact=-286e-9;
-    case 6
+    case 6 % cte Z
         BaseName='Data/2015_07_02/FE_W(011)_';
         VarName='Bias [V]';
         idx=45:53;
         contact=-286e-9;
-    case 7
+    case 7 % cte Z
         BaseName='Data/2015_06_30/FE_W(011)_';
         VarName='Bias [V]';
         idx=3:12;
         contact=-340e-9;
-    case 8
+    case 8 % cte Z
         BaseName='Data/2015_06_30/FE_W(011)_';
         VarName='Bias [V]';
         idx=14:20;
         contact=-340e-9;
-    case 9
+    case 9 % cte Z
         BaseName='Data/2015_06_29/FE_W(011)_';
         VarName='Bias [V]';
         idx=7:17;
         contact=-280e-9;
         
-    case 10
+    case 10 % cte Z
         BaseName='Data/2015_06_10/FE_W(011)_';
         VarName='Index';
         idx=1:35;%15;
@@ -99,8 +99,8 @@ S=0.1;
 % Load & process Data
 Ext='.hys';
 fns=arrayfun(@(x) [BaseName, num2str(x,'%03u'), Ext],idx,'UniformOutput',false);
-[headers,datas]=cellfun(@loadHys,fns,'UniformOutput',false);
-hys=cellfun(@(x,y) processHys(x,y,S,contact),datas,headers);
+[headers,datas]=cellfun(@load.loadHys,fns,'UniformOutput',false);
+hys=cellfun(@(x,y) load.processHys(x,y,S,contact),datas,headers);
 
 % Prepare variables
 Bias=arrayfun(@(x) x.header.TIP_BIAS_V,hys);
@@ -120,6 +120,143 @@ end
 polName = sprintf('Polarization (Uncalib., S=%g) [au]',S);
 
 
+%% Datas
+RMS=arrayfun(@(x) x.model.rms,hys);
+amp=arrayfun(@(x) x.model.amplitude,hys);
+ampSTD=arrayfun(@(x) x.model.ampSTD,hys);
+diffAmp=arrayfun(@(x) x.model.diffAmp,hys);
+meanContr=arrayfun(@(x) x.data.meanContr,hys);
+
+
+%% Bias
+figure
+plot(Z,abs(Bias),'x-')
+title('Bias vs Z')
+xlabel('Z [nm]')
+ylabel('Bias [V]')
+set(gca,'FontSize',20)
+
+%% Current
+I=arrayfun(@(x) x.data.meanI,hys);
+figure
+plot(Var,I,'x-')
+title('Current')
+ 
+xlabel(VarName)
+ylabel('current [I]')
+set(gca,'FontSize',20)
+
+%% Counts
+CH0=arrayfun(@(x) x.data.meanCH0,hys);
+CH2=arrayfun(@(x) x.data.meanCH2,hys);
+figure
+plot(Var,CH0,Var,CH2,'x-')
+title('Counts')
+legend('Channel 0','Channel 2')
+xlabel(VarName)
+ylabel('Counts [Hz]')
+set(gca,'FontSize',20)
+
+%% RMS
+
+figure
+plot(Var,RMS,'x-')
+
+xlabel(VarName)
+ylabel('Noise RMS')
+set(gca,'FontSize',20)
+
+%% amplitude
+figure
+errorbar(Var,amp,2*ampSTD,'x-')
+xlabel(VarName)
+ylabel(polName)
+set(gca,'FontSize',20)
+
+
+
+%% Flip index
+flipIdx=arrayfun(@(x) x.model.flipIdx,hys);
+flipSTD=arrayfun(@(x) x.model.flipSTD,hys);
+figure
+errorbar(Var,flipIdx,2*flipSTD,'x-')
+title('Coercity field')
+xlabel(VarName)
+ylabel('Load time [\mus]')
+set(gca,'FontSize',20)
+
+
+
+
+%% Plot hysteresis
+for i=1:floor(numel(hys)/4):numel(hys)
+    plot.plotHys(hys(i));
+end
+
+%{
+%% RMS VS # electrons in one detector
+names=arrayfun(@(x) sprintf(['%d' VarUnit],round(x)),Var,'UniformOutput',false);
+%[NE,RMS]=RMSvsNBRE(datas,headers,S,contact);
+[NE,RMS] = cellfun(@(x,y) op.getNeRmsCrv(x,y,S,contact),datas,headers,'UniformOutput',false);
+
+FL=figure();
+hold on
+
+
+%
+FIT=cellfun(@(x,y) polyfit(x.^-0.5,y,1)',NE,RMS,'UniformOutput',false);
+FIT=[FIT{:}];
+%
+for j=1:numel(NE)
+    %Plot (x^-0.5 so that the plot is linear)
+    figure(FL)
+    plot(NE{j}.^-0.5,RMS{j},'x-','DisplayName',names{j})
+    
+end
+
+%Linearize data and remove NaN
+NEline=cat(2,NE{:});
+RMSline=cat(2,RMS{:});
+NEline=NEline(~isnan(RMSline))';
+RMSline=RMSline(~isnan(RMSline))';
+
+X=min(NEline):10:max(NEline);
+
+Xir=X.^-0.5;
+
+%Fit data to a*x^-.5
+[STDFit,gof]=fit(NEline.^-0.5,RMSline,'p1*x','StartPoint',30);
+
+%Finish plot
+
+figure(FL)
+plot(Xir,STDFit.p1.*Xir,'r-','DisplayName',sprintf('fit a=%.2f',STDFit.p1))
+xlabel('Number of Electrons^{-1/2}')
+%    ylabel(polName)
+title(sprintf('Noise RMS vs Number of electrons, slope=%.2f',STDFit.p1));
+set(gca,'FontSize',20)
+
+legend(gca,'show','Location','northwest');
+
+
+
+%legend(gca,'show');
+
+
+figure
+plot(Var,FIT(1,:),'x')
+xlabel(VarName)
+ylabel('Fit Coefficient p1 [au]')
+set(gca,'FontSize',15)
+
+figure
+plot(Var,FIT(2,:),'x')
+xlabel(VarName)
+ylabel('Fit Coefficient p2 [au]')
+set(gca,'FontSize',15)
+
+%}
+%{
 %% signal/noise
 
 RMS=arrayfun(@(x) x.model.rms,hys);
@@ -132,15 +269,8 @@ title('Signal over RMS')
 xlabel(VarName)
 ylabel('Signal/Noise')
 set(gca,'FontSize',15)
+%%
 
-
-%% Bias
-figure
-plot(Z,abs(Bias),'x-')
-title('Bias vs Z')
-xlabel('Z [nm]')
-ylabel('Bias [V]')
-set(gca,'FontSize',15)
 %% R-Squared
 RS=arrayfun(@(x) x.model.RSquared,hys);
 figure
@@ -149,62 +279,14 @@ title('R-Squared')
 xlabel(VarName)
 ylabel('R-Squared [au]')
 set(gca,'FontSize',15)
-%% Amplitude and RMS
-RMS=arrayfun(@(x) x.model.rms,hys);
-amp=arrayfun(@(x) x.model.amplitude,hys);
-ampSTD=arrayfun(@(x) x.model.ampSTD,hys);
-diffAmp=arrayfun(@(x) x.model.diffAmp,hys);
-meanContr=arrayfun(@(x) x.meanContr,hys);
-figure
-hold all
-errorbar(Var,amp,2*ampSTD,'x-')
-plot(Var,RMS,'x-')
-plot(Var,meanContr,'x-')
-plot(Var,diffAmp,'x-')
-title('Signal amplitude and RMS')
-legend('Signal amplitude', 'Noise RMS')
-
-xlabel(VarName)
-ylabel(polName)
-set(gca,'FontSize',15)
-
-%% Flip index
-flipIdx=arrayfun(@(x) x.model.flipIdx,hys);
-flipSTD=arrayfun(@(x) x.model.flipSTD,hys);
-figure
-errorbar(Var,flipIdx,2*flipSTD,'x-')
-title('Coercity field')
-xlabel(VarName)
-ylabel('Load time [\mus]')
-set(gca,'FontSize',15)
 
 %% Q factor
 Q=arrayfun(@(x) x.Q,hys);
 figure
-plot(Var,Q,'x-')
+plot(Var,Q,'x-') 
 title('Q')
 xlabel(VarName)
 ylabel('Correction factor Q [au]')
-set(gca,'FontSize',15)
-
-%% Current
-I=arrayfun(@(x) x.meanI,hys);
-figure
-plot(Var,I,'x-')
-title('Current')
-
-xlabel(VarName)
-ylabel('current [I]')
-set(gca,'FontSize',15)
-%% Counts
-CH0=arrayfun(@(x) x.meanCH0,hys);
-CH2=arrayfun(@(x) x.meanCH2,hys);
-figure
-plot(Var,CH0,Var,CH2,'x-')
-title('Counts')
-legend('Channel 0','Channel 2')
-xlabel(VarName)
-ylabel('Counts [Hz]')
 set(gca,'FontSize',15)
 
 %% F-N
@@ -230,87 +312,6 @@ xlabel('current [I]')
 ylabel('Counts [Hz]')
 set(gca,'FontSize',15)
 
-%% Plot hysteresis
-plotHys(hys(4));
-%For each data set
-%for i=11:11%size(hys,2)
-
-%end
-
-
-%% RMS VS # electrons in one detector
-names=arrayfun(@(x) sprintf(['%d' VarUnit],round(x)),Var,'UniformOutput',false);
-[NE,RMS,FIT]=RMSvsNBRE(datas,headers,S,contact);
-
-FL=figure();
-hold on
-
-FR=figure();
-hold on
-
-for j=1:numel(NE)
-    %Plot (x^-0.5 so that the plot is linear)
-    
-    figure(FL)
-    plot(NE{j}.^-0.5,RMS{j},'x-','DisplayName',names{j})
-    
-    figure(FR)
-    plot(NE{j},RMS{j},'x-','DisplayName',names{j})
-    
-end
-
-%Linearize data and remove NaN
-NEline=cat(2,NE{:});
-RMSline=cat(2,RMS{:});
-NEline=NEline(~isnan(RMSline))';
-RMSline=RMSline(~isnan(RMSline))';
-
-X=min(NEline):10:max(NEline);
-
-Xir=X.^-0.5;
-
-%Fit data to a*x^-.5
-[STDFit,gof]=fit(NEline.^-0.5,RMSline,'p1*x','StartPoint',30);
-
-%Finish plot
-
-figure(FL)
-plot(Xir,STDFit.p1.*Xir,'r-','DisplayName',sprintf('fit a=%.2f',STDFit.p1))
-xlabel('Number of Electrons^{-1/2}')
-%    ylabel(polName)
-title(sprintf('Noise RMS vs Number of electrons, slope=%.2f',STDFit.p1));
-set(gca,'FontSize',15)
-
-legend(gca,'show','Location','northwest');
-
-
-
-figure(FR)
-plot(X,STDFit.p1.*Xir,'r-','DisplayName',sprintf('fit a=%.2f',STDFit.p1))
-xlabel('Number of Electrons')
-ylabel(polName)
-title('Noise RMS vs Number of electrons')
-set(gca,'FontSize',15)
-
-
-%legend(gca,'show');
-
-%
-figure
-plot(Var,[FIT.p1],'x')
-xlabel(VarName)
-ylabel('Fit Coefficient p1 [au]')
-set(gca,'FontSize',15)
-
-%%
-figure
-plot(Var,[FIT.p2],'x-')
-xlabel(VarName)
-ylabel('Fit Coefficient p2 [au]')
-set(gca,'FontSize',15)
-
-
-%%
 %{
 
 idxline=sum(STDX<8000,2);
@@ -318,4 +319,5 @@ idx = sub2ind(size(STDX), 1:size(STDX,1), idxline');
 figure
 plot(Var,STDY(idx))
 
+%}
 %}

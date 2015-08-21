@@ -10,7 +10,7 @@ function [NE,RMS] = getNeRmsCrv(data,header,S,contact)
         RMS(i)=H.model.rms;
         
         %Compute corresponding number of electrons (Counts ~const)
-        NE(i)=i*H.Neq;
+        NE(i)=i*H.data.Neq;
     end
 end
 

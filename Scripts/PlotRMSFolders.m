@@ -88,7 +88,7 @@ function [FITP,Q,ampl] = loadFolder(folderName,name)
         
         
         %FITP=[FIT.p1];
-        Q=[hys.Q];
+        Q=arrayfun(@(x) x.data.Q,hys)';
         ampl=arrayfun(@(x) x.model.amplitude,hys)';
         
         

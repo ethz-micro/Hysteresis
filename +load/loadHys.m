@@ -58,7 +58,7 @@ else
 end
 
 %Read Data
-data =fread(fid, [header.MSR_SIZE 4], 'float');
+data =fread(fid, [header.MSR_SIZE 6], 'float');
 
 fclose(fid);
 end

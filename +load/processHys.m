@@ -4,7 +4,7 @@ function hysteresis=processHys(data,header,S,contact,varargin)
     %[hysteresis.header,data]=loadHys(fn);
     
     %Cut data in lines
-    hysteresis=cutData(data,S,varargin{:});
+    hysteresis.data=cutData(data,S,varargin{:});
     
     %Fit model to data
     hysteresis.model=load.fitModel(hysteresis);
@@ -14,14 +14,16 @@ function hysteresis=processHys(data,header,S,contact,varargin)
     end
     
     hysteresis.header=header;
-    hysteresis.S=S;
+    hysteresis.data.S=S;
     
     %save Neq
-    EqCountRate=4*hysteresis.meanCH0/(hysteresis.Q+1);
-    hysteresis.Neq=EqCountRate*header.AVRG_WAIT_ms*1e-3;
+    EqCountRate=4*hysteresis.data.meanCH0/(hysteresis.data.Q+1);
+    hysteresis.data.Neq=EqCountRate*header.AVRG_WAIT_ms*1e-3;
 end
 
-function hysteresis=cutData(data,S,varargin)
+function dataStruct=cutData(data,S,varargin)
+    ch0Idx=2;
+    ch2Idx=3;
     
     %Load time
     time=data(:,1);
@@ -44,10 +46,10 @@ function hysteresis=cutData(data,S,varargin)
     
     loopsIdx=bounds(1):bounds(end);
     %Q is computed such as mean = 0 (Over a loop, the values from counter 0 and 2 should be equal)
-    Q=sum(data(loopsIdx,2))/sum(data(loopsIdx,3));
+    Q=sum(data(loopsIdx,ch0Idx))/sum(data(loopsIdx,ch2Idx));
     
     %Compute contrast
-    Contr=1/S*(Q*data(:,3)-data(:,2))./(Q*data(:,3)+data(:,2));
+    Contr=1/S*(Q*data(:,ch2Idx)-data(:,ch0Idx))./(Q*data(:,ch2Idx)+data(:,ch0Idx));
     
     %Separate lines
     for i=(floor((numel(bounds)-3)/2)*2+1):-2:1%make sure we have an even number of back and forth
@@ -64,20 +66,20 @@ function hysteresis=cutData(data,S,varargin)
         risingLines=tmp;
     end
     
-    hysteresis.time=time;
-    hysteresis.fallingLines=fallingLines;
-    hysteresis.risingLines=risingLines;
-    hysteresis.Q=Q;
+    dataStruct.time=time;
+    dataStruct.fallingLines=fallingLines;
+    dataStruct.risingLines=risingLines;
+    dataStruct.Q=Q;
     
     %Compute mean raw values
-    hysteresis.meanCH0=mean(data(loopsIdx,2));
-    hysteresis.meanCH2=mean(data(loopsIdx,3));
+    dataStruct.meanCH0=mean(data(loopsIdx,ch0Idx));
+    dataStruct.meanCH2=mean(data(loopsIdx,ch2Idx));
     
     if size(data,2)>3
-        hysteresis.meanI=mean(data(loopsIdx,4));
+        dataStruct.meanI=mean(data(loopsIdx,4));
     else
-        hysteresis.meanI=nan;
+        dataStruct.meanI=nan;
     end
-    hysteresis.meanContr=mean([fallingLines(:); risingLines(:)]);
-    hysteresis.NLoop=size(risingLines,2);
+    dataStruct.meanContr=mean([fallingLines(:); risingLines(:)]);
+    dataStruct.NLoop=size(risingLines,2);
 end

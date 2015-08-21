@@ -2,7 +2,7 @@ close all
 clear all
 %% Load data
 
-fn = 'Data/2015_06_15/FE_W(011)_002.hys';
+%fn = 'Data/2015_06_15/FE_W(011)_002.hys';
 %fn = 'Data/2015_06_03/FE_W(011)_001.hys';
 fn = 'Data/2015_07_16/FE_W(011)_003.hys';
 

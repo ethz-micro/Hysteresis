@@ -104,6 +104,18 @@ function allDataStat(sfn)
     set(gca,'FontSize',20)
     
     figure
+    histogram(FlipIdx(amplitude>rms&V==80 & nfesem),3:16)
+    xlabel('Flip Load Time [\mus]')
+    set(gca,'FontSize',20)
+    title('V_{load}=80, amplitude>RMS, NFESEM','FontSize',15)
+    
+    figure
+    histogram(FlipIdx(amplitude>rms&V==80 & ~nfesem),3:16)
+    xlabel('Flip Load Time [\mus]')
+    set(gca,'FontSize',20)
+    title('V_{load}=80, amplitude>RMS, SEMPA','FontSize',15)
+    
+    figure
     histogram(fields,35)
     xlabel('Flip Field [G]')
     set(gca,'FontSize',20)
