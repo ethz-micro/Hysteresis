@@ -4,11 +4,11 @@ clear all
 
 %fn = 'Data/2015_06_15/FE_W(011)_002.hys';
 %fn = 'Data/2015_06_03/FE_W(011)_001.hys';
-%fn = 'Data/2015_07_16/FE_W(011)_003.hys';
-%contact=-260e-9;
+fn = 'Data/2015_07_16/FE_W(011)_003.hys';
+contact=-260e-9;
 
-fn = 'Data/2015_06_10/FE_W(011)_016.hys';
-contact=-316e-9;
+%fn = 'Data/2015_06_10/FE_W(011)_016.hys';
+%contact=-316e-9;
 
 
 S=0.1;
@@ -33,3 +33,8 @@ maxLoop=27;
 hysm=load.processHys(Data,Header,S,contact,maxLoop);
 
 plot.plotHys(hysm)
+
+%%
+%ylabel('Polarization [%]')
+
+

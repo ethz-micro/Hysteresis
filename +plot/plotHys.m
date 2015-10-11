@@ -20,10 +20,10 @@ function plotHys(hysteresis,varargin)
     %Plot everithing
     figure
     hold all
-    plot(X,YR,'bx','DisplayName','Raising');
-    plot(X,YMR,'b-','DisplayName','Raising Fit');
-    plot(X,YF,'rx','DisplayName','Falling');
-    plot(X,YMF,'r-','DisplayName','Falling Fit');
+    plot(X,100*YR,'bx','DisplayName','Raising');
+    plot(X,100*YMR,'b-','DisplayName','Raising Fit');
+    plot(X,100*YF,'rx','DisplayName','Falling');
+    plot(X,100*YMF,'r-','DisplayName','Falling Fit');
     
     l1=hysteresis.header.MSR_DATE;     
     l2=sprintf('Bias= %.4g V, \\DeltaZ= %g nm',abs(hysteresis.header.TIP_BIAS_V),hysteresis.header.TIP_Z_m*1e9);
@@ -33,7 +33,8 @@ function plotHys(hysteresis,varargin)
     legend(gca,'show','Location','northwest');
     
     xlabel(xname)
-    polName = sprintf('Polarization (Uncalib., S=%g) [au]',hysteresis.data.S);
+    polName = sprintf('Polarization (S=%g) [%%]',hysteresis.data.S);
+    polName='Polarization [%]';
     ylabel(polName)
     set(gca,'FontSize',20)
     title({l1,l2},'FontSize',12);
