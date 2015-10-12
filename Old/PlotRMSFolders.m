@@ -1,6 +1,6 @@
 function PlotRMSFolders(sfn)
-    %call loadFolder in all folder inside superfolder
-    %sfn = 'Data';
+ 
+ 
     files=dir(sfn);
     
     
@@ -40,12 +40,9 @@ function PlotRMSFolders(sfn)
     
 end
 function R=funfit(X,Y)
-    try
-        f=fit(X',Y','p1*x','StartPoint',70);
-        R=f.p1;
-    catch exception
-        R=nan;
-    end
+    XY=sum(X.*Y);
+    X2=sum(X.^2);
+    R=XY/X2;
 end
 function [FITP,Q,ampl] = loadFolder(folderName,name)
     persistent loadedData

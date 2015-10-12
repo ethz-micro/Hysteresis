@@ -1,6 +1,6 @@
 function findBest(sfn)
     %call loadFolder in all folder inside superfolder
-    %SuperFolder = 'Data/March';
+    %SuperFolder = 'Data';
     files=dir(sfn);
     figure
     hold all

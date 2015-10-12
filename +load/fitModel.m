@@ -7,12 +7,12 @@ function model = fitModel(hysteresis)
     risingLines=hysteresis.data.risingLines;
     fallingLines=hysteresis.data.fallingLines;
     
-    
-    %% Find data shape
+    % Find data shape
     
     %To compute the amplitude, Time>0 for falling and Time <0 for rising
     %are assumed to be flat
-    amplitude=1/2*(mean(mean(fallingLines(Time>0,:)))-mean(mean(risingLines(Time<0,:))));
+    amplitude=1/2*(mean(mean(fallingLines(Time>0,:)))-...
+        mean(mean(risingLines(Time<0,:))));
     
     %If amplitude <=0, we can't compute the rest of the data, and it is
     %assumed that no hysteresis has been detected.
@@ -35,12 +35,15 @@ function model = fitModel(hysteresis)
     else
         %Save amplitude
         model.amplitude=amplitude;
-        model.diffAmp=(mean(mean(fallingLines(Time>0,:)))+mean(mean(risingLines(Time<0,:))))/2;
+        model.diffAmp=(mean(mean(fallingLines(Time>0,:)))+...
+            mean(mean(risingLines(Time<0,:))))/2;
         
         %Use formula to find theoritical flip index
         dt=abs(Time(2)-Time(1));%Step
-        flipFalling=1/2*(min(Time)-dt-sum(dt*mean(fallingLines(Time<0,:),2))/amplitude);
-        flipRising=1/2*(max(Time)+dt-sum(dt*mean(risingLines(Time>0,:),2))/amplitude);
+        flipFalling=1/2*(min(Time)-dt-...
+            sum(dt*mean(fallingLines(Time<0,:),2))/amplitude);
+        flipRising=1/2*(max(Time)+dt-...
+            sum(dt*mean(risingLines(Time>0,:),2))/amplitude);
         flipIdx=(flipRising-flipFalling)/2;
         
         %Use brute force to find numerical index

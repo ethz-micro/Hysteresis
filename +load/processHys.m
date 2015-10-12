@@ -1,8 +1,5 @@
 function hysteresis=processHys(data,header,S,contact,varargin)
     
-    %Get header and data
-    %[hysteresis.header,data]=loadHys(fn);
-    
     %Cut data in lines
     hysteresis.data=cutData(data,S,varargin{:});
     

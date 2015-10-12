@@ -12,8 +12,9 @@ while s1~=[26 4]
               s1(2) = s2;
 end
 
-%remove last thing
+%remove \1A\04
 headertxt=headertxt(1:end-2);
+
 %save Raw txt
 header.RAWTXT=headertxt;
 headertxt=strsplit(headertxt,'\n');
