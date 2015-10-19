@@ -37,14 +37,14 @@ function allDataStat(sfn)
     X=fitSigmaESTD*.01;
     figure
     histogram(X,0:.05:1)
-    xlabel('STD \sigma_e^2')
+    xlabel('STD \sigma_n^2')
     title(sprintf('STD = %.2f, median = %.2f',nanstd(X),nanmedian(X)))
     set(gca,'FontSize',20)
     
-    %Plot \sigma_e^2
+    %Plot \sigma_n^2
     figure
     histogram(FITSigma*.01,0.5:.05:2);
-    xlabel('\sigma_e^2')
+    xlabel('\sigma_n^2')
     title(sprintf('Median = %.2f, Std = %.2f ,%d off-scale',nanmedian(FITSigma((FITSigma<200))*.01),nanstd(FITSigma((FITSigma<200))*.01),numel(ignored)));
     set(gca,'FontSize',20)
     
